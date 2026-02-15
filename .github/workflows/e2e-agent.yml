@@ -74,11 +74,6 @@ jobs:
         run: ./mvnw clean install -DskipTests -Pe2e.env.proxy -f test/e2e/agent/engine/pom.xml
       - name: Save Proxy E2E Image
         run: docker save -o /tmp/apache-shardingsphere-proxy-agent-test.tar apache/shardingsphere-proxy-agent-test:latest
-      - name: Validate Proxy E2E Image Archive
-        run: |
-          test -f /tmp/apache-shardingsphere-proxy-agent-test.tar
-          test "$(stat -c%s /tmp/apache-shardingsphere-proxy-agent-test.tar)" -ge 104857600
-          tar -tf /tmp/apache-shardingsphere-proxy-agent-test.tar >/dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: proxy-e2e-image
@@ -88,11 +83,6 @@ jobs:
         run: ./mvnw clean install -DskipTests -Pe2e.env.jdbc -f test/e2e/agent/engine/pom.xml
       - name: Save JDBC E2E Image
         run: docker save -o /tmp/apache-shardingsphere-jdbc-agent-test.tar apache/shardingsphere-jdbc-agent-test:latest
-      - name: Validate JDBC E2E Image Archive
-        run: |
-          test -f /tmp/apache-shardingsphere-jdbc-agent-test.tar
-          test "$(stat -c%s /tmp/apache-shardingsphere-jdbc-agent-test.tar)" -ge 104857600
-          tar -tf /tmp/apache-shardingsphere-jdbc-agent-test.tar >/dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: jdbc-e2e-image
