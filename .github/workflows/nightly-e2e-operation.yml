@@ -52,6 +52,10 @@ jobs:
           distribution: 'temurin'
           java-version: 17
           cache: 'maven'
+      - uses: docker/setup-docker-action@v4
+        with:
+          version: v28.0.4
+          set-host: true
       - name: Maven Install
         env:
           PREFIX: "test/e2e/operation/"
@@ -113,6 +117,10 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java-version }}
           cache: 'maven'
+      - uses: docker/setup-docker-action@v4
+        with:
+          version: v28.0.4
+          set-host: true
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:

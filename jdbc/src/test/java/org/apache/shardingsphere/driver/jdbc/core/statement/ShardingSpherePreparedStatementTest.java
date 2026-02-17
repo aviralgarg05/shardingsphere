@@ -45,8 +45,8 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,12 +58,25 @@ import static org.mockito.Mockito.when;
 
 class ShardingSpherePreparedStatementTest {
     
+    @SuppressWarnings("unchecked")
     @Test
     void assertClearBatchResetsCachedGeneratedKeysResultSet() throws SQLException, ReflectiveOperationException {
-        ShardingSpherePreparedStatement preparedStatement = createPreparedStatement(TypedSPILoader.getService(DatabaseType.class, "SQL92"));
+        ShardingSphereDatabase database = mock(ShardingSphereDatabase.class);
+        when(database.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "SQL92"));
+        when(database.getRuleMetaData()).thenReturn(new RuleMetaData(Collections.emptyList()));
+        ShardingSphereMetaData metaData = mock(ShardingSphereMetaData.class);
+        when(metaData.getDatabase("foo_db")).thenReturn(database);
+        when(metaData.getGlobalRuleMetaData()).thenReturn(new RuleMetaData(Arrays.asList(
+                new SQLParserRule(new DefaultSQLParserRuleConfigurationBuilder().build()),
+                new SQLFederationRule(new DefaultSQLFederationRuleConfigurationBuilder().build(), Collections.emptyList()))));
+        when(metaData.getProps()).thenReturn(new ConfigurationProperties(new Properties()));
+        ShardingSphereConnection connection = mock(ShardingSphereConnection.class, RETURNS_DEEP_STUBS);
+        when(connection.getContextManager().getMetaDataContexts().getMetaData()).thenReturn(metaData);
+        when(connection.getCurrentDatabaseName()).thenReturn("foo_db");
+        ShardingSpherePreparedStatement preparedStatement = new ShardingSpherePreparedStatement(connection, "SELECT 1", Statement.RETURN_GENERATED_KEYS);
         ResultSet cachedResultSet = new GeneratedKeysResultSet();
         Plugins.getMemberAccessor().set(ShardingSpherePreparedStatement.class.getDeclaredField("currentBatchGeneratedKeysResultSet"), preparedStatement, cachedResultSet);
-        getGeneratedValues(preparedStatement).add(1L);
+        ((Collection<Comparable<?>>) Plugins.getMemberAccessor().get(ShardingSpherePreparedStatement.class.getDeclaredField("generatedValues"), preparedStatement)).add(1L);
         preparedStatement.clearBatch();
         ResultSet actual = preparedStatement.getGeneratedKeys();
         assertThat(actual, not(cachedResultSet));
@@ -151,12 +164,6 @@ class ShardingSpherePreparedStatementTest {
         PreparedStatement statement = mock(PreparedStatement.class);
         when(statement.getGeneratedKeys()).thenReturn(generatedKeys);
         getPreparedStatements(preparedStatement).add(statement);
-    }
-    
-    @SuppressWarnings("unchecked")
-    private Collection<Comparable<?>> getGeneratedValues(final ShardingSpherePreparedStatement preparedStatement) throws ReflectiveOperationException {
-        Field generatedValuesField = ShardingSpherePreparedStatement.class.getDeclaredField("generatedValues");
-        return (Collection<Comparable<?>>) Plugins.getMemberAccessor().get(generatedValuesField, preparedStatement);
     }
     
     @SuppressWarnings("unchecked")

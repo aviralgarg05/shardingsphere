@@ -215,6 +215,10 @@ public enum SQLVisitorRule {
     
     ANALYZE("Analyze", SQLStatementType.DDL),
     
+    CREATE_FILE("CreateFile", SQLStatementType.DDL),
+    
+    DROP_FILE("DropFile", SQLStatementType.DDL),
+    
     CREATE_SEQUENCE("CreateSequence", SQLStatementType.DDL),
     
     ALTER_SEQUENCE("AlterSequence", SQLStatementType.DDL),
@@ -440,6 +444,8 @@ public enum SQLVisitorRule {
     SET_NAME("SetName", SQLStatementType.DAL),
     
     SET_CHARACTER("SetCharacter", SQLStatementType.DAL),
+    
+    SYNC("Sync", SQLStatementType.DAL),
     
     RESET_PARAMETER("ResetParameter", SQLStatementType.DAL),
     
