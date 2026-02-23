@@ -62,6 +62,26 @@ class ShardingSpherePreparedStatementTest {
     @SuppressWarnings("unchecked")
     @Test
     void assertClearBatchResetsCachedGeneratedKeysResultSet() throws SQLException, ReflectiveOperationException {
+        ShardingSpherePreparedStatement preparedStatement = createPreparedStatement();
+        ResultSet cachedResultSet = new GeneratedKeysResultSet();
+        Plugins.getMemberAccessor().set(ShardingSpherePreparedStatement.class.getDeclaredField("currentBatchGeneratedKeysResultSet"), preparedStatement, cachedResultSet);
+        ((Collection<Comparable<?>>) Plugins.getMemberAccessor().get(ShardingSpherePreparedStatement.class.getDeclaredField("generatedValues"), preparedStatement)).add(1L);
+        preparedStatement.clearBatch();
+        ResultSet actual = preparedStatement.getGeneratedKeys();
+        assertThat(actual, not(cachedResultSet));
+        assertFalse(actual.isClosed());
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    void assertExecuteBatchClearsGeneratedValuesWithoutPendingBatches() throws SQLException, ReflectiveOperationException {
+        ShardingSpherePreparedStatement preparedStatement = createPreparedStatement();
+        ((Collection<Comparable<?>>) Plugins.getMemberAccessor().get(ShardingSpherePreparedStatement.class.getDeclaredField("generatedValues"), preparedStatement)).add(1L);
+        preparedStatement.executeBatch();
+        assertFalse(preparedStatement.getGeneratedKeys().next());
+    }
+    
+    private ShardingSpherePreparedStatement createPreparedStatement() throws SQLException {
         ShardingSphereDatabase database = mock(ShardingSphereDatabase.class);
         when(database.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "SQL92"));
         when(database.getRuleMetaData()).thenReturn(new RuleMetaData(Collections.emptyList()));
@@ -74,14 +94,7 @@ class ShardingSpherePreparedStatementTest {
         ShardingSphereConnection connection = mock(ShardingSphereConnection.class, RETURNS_DEEP_STUBS);
         when(connection.getContextManager().getMetaDataContexts().getMetaData()).thenReturn(metaData);
         when(connection.getCurrentDatabaseName()).thenReturn("foo_db");
-        ShardingSpherePreparedStatement preparedStatement = new ShardingSpherePreparedStatement(connection, "SELECT 1", Statement.RETURN_GENERATED_KEYS);
-        ResultSet cachedResultSet = new GeneratedKeysResultSet();
-        Plugins.getMemberAccessor().set(ShardingSpherePreparedStatement.class.getDeclaredField("currentBatchGeneratedKeysResultSet"), preparedStatement, cachedResultSet);
-        ((Collection<Comparable<?>>) Plugins.getMemberAccessor().get(ShardingSpherePreparedStatement.class.getDeclaredField("generatedValues"), preparedStatement)).add(1L);
-        preparedStatement.clearBatch();
-        ResultSet actual = preparedStatement.getGeneratedKeys();
-        assertThat(actual, not(cachedResultSet));
-        assertFalse(actual.isClosed());
+        return new ShardingSpherePreparedStatement(connection, "SELECT 1", Statement.RETURN_GENERATED_KEYS);
     }
     
     @Test
