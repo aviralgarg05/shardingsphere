@@ -81,22 +81,6 @@ class ShardingSpherePreparedStatementTest {
         assertFalse(preparedStatement.getGeneratedKeys().next());
     }
     
-    private ShardingSpherePreparedStatement createPreparedStatement() throws SQLException {
-        ShardingSphereDatabase database = mock(ShardingSphereDatabase.class);
-        when(database.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "SQL92"));
-        when(database.getRuleMetaData()).thenReturn(new RuleMetaData(Collections.emptyList()));
-        ShardingSphereMetaData metaData = mock(ShardingSphereMetaData.class);
-        when(metaData.getDatabase("foo_db")).thenReturn(database);
-        when(metaData.getGlobalRuleMetaData()).thenReturn(new RuleMetaData(Arrays.asList(
-                new SQLParserRule(new DefaultSQLParserRuleConfigurationBuilder().build()),
-                new SQLFederationRule(new DefaultSQLFederationRuleConfigurationBuilder().build(), Collections.emptyList()))));
-        when(metaData.getProps()).thenReturn(new ConfigurationProperties(new Properties()));
-        ShardingSphereConnection connection = mock(ShardingSphereConnection.class, RETURNS_DEEP_STUBS);
-        when(connection.getContextManager().getMetaDataContexts().getMetaData()).thenReturn(metaData);
-        when(connection.getCurrentDatabaseName()).thenReturn("foo_db");
-        return new ShardingSpherePreparedStatement(connection, "SELECT 1", Statement.RETURN_GENERATED_KEYS);
-    }
-    
     @Test
     void assertGetGeneratedKeysByDialectGeneratedKeyColumn() throws SQLException {
         ShardingSpherePreparedStatement preparedStatement = createPreparedStatement(TypedSPILoader.getService(DatabaseType.class, "MySQL"));
@@ -112,6 +96,10 @@ class ShardingSpherePreparedStatementTest {
         verify(generatedKeys).getObject("GENERATED_KEY");
         verify(generatedKeys, never()).getObject("id");
         verify(generatedKeys, never()).getObject(1);
+    }
+    
+    private ShardingSpherePreparedStatement createPreparedStatement() throws SQLException {
+        return createPreparedStatement(TypedSPILoader.getService(DatabaseType.class, "SQL92"));
     }
     
     private ShardingSpherePreparedStatement createPreparedStatement(final DatabaseType databaseType) throws SQLException {
