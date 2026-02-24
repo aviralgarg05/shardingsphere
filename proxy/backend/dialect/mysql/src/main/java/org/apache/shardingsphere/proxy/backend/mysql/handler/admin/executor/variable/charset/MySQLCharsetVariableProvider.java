@@ -35,7 +35,7 @@ public final class MySQLCharsetVariableProvider implements CharsetVariableProvid
     
     @Override
     public Collection<String> getCharsetVariables() {
-        return Arrays.asList("charset", "character_set_client");
+        return Arrays.asList("charset", "character_set_client", "character_set_results", "character_set_connection");
     }
     
     @Override

@@ -72,4 +72,20 @@ class CharsetSetExecutorTest {
         when(DatabaseTypedSPILoader.findService(CharsetVariableProvider.class, databaseType)).thenReturn(Optional.of(provider));
         assertDoesNotThrow(() -> new CharsetSetExecutor(databaseType, mock()).set("character_set_client", "utf8"));
     }
+    
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    void assertSetWhenCharacterSetResultsMatched() {
+        CharsetVariableProvider provider = mock(CharsetVariableProvider.class);
+        when(provider.getCharsetVariables()).thenReturn(Collections.singletonList("character_set_results"));
+        when(provider.parseCharset("utf8")).thenReturn(StandardCharsets.UTF_8);
+        when(DatabaseTypedSPILoader.findService(CharsetVariableProvider.class, databaseType)).thenReturn(Optional.of(provider));
+        AttributeMap attributeMap = mock(AttributeMap.class);
+        Attribute attribute = mock(Attribute.class);
+        when(attributeMap.attr(CommonConstants.CHARSET_ATTRIBUTE_KEY)).thenReturn(attribute);
+        ConnectionSession connectionSession = mock(ConnectionSession.class);
+        when(connectionSession.getAttributeMap()).thenReturn(attributeMap);
+        new CharsetSetExecutor(databaseType, connectionSession).set("CHARACTER_SET_RESULTS", "utf8");
+        verify(attribute).set(StandardCharsets.UTF_8);
+    }
 }

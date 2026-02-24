@@ -45,7 +45,7 @@ class MySQLCharsetVariableProviderTest {
     
     @Test
     void assertCharsetVariablesAndDatabaseType() {
-        assertThat(provider.getCharsetVariables(), contains("charset", "character_set_client"));
+        assertThat(provider.getCharsetVariables(), contains("charset", "character_set_client", "character_set_results", "character_set_connection"));
     }
     
     @Test
@@ -53,7 +53,7 @@ class MySQLCharsetVariableProviderTest {
         assertThrows(UnknownCharsetException.class, () -> provider.parseCharset("unknown_charset"));
     }
     
-    @ParameterizedTest
+    @ParameterizedTest(name = "{0}")
     @MethodSource("successArguments")
     void assertParseCharset(final String input, final Charset expected) {
         assertThat(provider.parseCharset(input), is(expected));
