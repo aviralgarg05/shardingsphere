@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MySQLCharsetVariableProviderTest {
@@ -51,6 +53,16 @@ class MySQLCharsetVariableProviderTest {
     @Test
     void assertParseCharsetWithUnknown() {
         assertThrows(UnknownCharsetException.class, () -> provider.parseCharset("unknown_charset"));
+    }
+    
+    @Test
+    void assertShouldSetWhenCharacterSetResultsWithNull() {
+        assertFalse(provider.shouldSet("character_set_results", "NULL"));
+    }
+    
+    @Test
+    void assertShouldSetWhenCharacterSetResultsWithCharset() {
+        assertTrue(provider.shouldSet("character_set_results", "'utf8mb4'"));
     }
     
     @ParameterizedTest(name = "{0}")

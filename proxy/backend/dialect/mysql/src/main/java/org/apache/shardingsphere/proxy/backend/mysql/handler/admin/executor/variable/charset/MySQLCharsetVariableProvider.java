@@ -39,6 +39,11 @@ public final class MySQLCharsetVariableProvider implements CharsetVariableProvid
     }
     
     @Override
+    public boolean shouldSet(final String variableName, final String variableValue) {
+        return !"character_set_results".equalsIgnoreCase(variableName) || !"null".equalsIgnoreCase(formatValue(variableValue));
+    }
+    
+    @Override
     public Charset parseCharset(final String variableValue) {
         String formattedValue = formatValue(variableValue);
         switch (formattedValue.toLowerCase(Locale.ROOT)) {
